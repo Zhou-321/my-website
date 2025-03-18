@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>设备图纸选型表</title>
+    <style>
+        body { 
+            font-family: "Microsoft YaHei", Arial, sans-serif; 
+            margin: 20px; 
+            background-color: #f8f9fa;
+        }
+        .filter-box { 
+            margin-bottom: 20px; 
+            padding: 15px; 
+            background: #fff; 
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        .filter-item { 
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        th, td { 
+            padding: 12px; 
+            border: 1px solid #e0e0e0; 
+            text-align: left; 
+            min-width: 120px;
+        }
+        th { 
+            background-color: #2c3e50; 
+            color: white; 
+            font-weight: 600;
+        }
+        tr:hover { 
+            background-color: #f8f9fa; 
+        }
+        a { 
+            color: #2980b9; 
+            text-decoration: none;
+            font-weight: 500;
+        }
+        a:hover { 
+            text-decoration: underline;
+        }
+        button {
+            padding: 8px 16px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        .action-buttons {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        /* 优化登录弹窗样式 */
+        #loginModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 2.5rem;
+            border-radius: 12px;
+            width: 380px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .modal-content.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 1.8rem;
+        }
+
+        .modal-header h3 {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin: 0 0 0.5rem 0;
+            font-weight: 600;
+        }
+
+        .modal-header p {
+            color: #666;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.3s;
+        }
+
+        .login-input:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+
+        .login-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 1.2rem;
+        }
+
+        .login-button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .login-button.primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .login-button.primary:hover {
+            background: #2980b9;
+        }
+
+        .login-button.secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .login-button.secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 0.85rem;
+            height: 1.2rem;
+            margin-top: -1rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="filter-box">
+        <input type="text" id="searchInput" placeholder="输入关键词搜索..." class="filter-item">
+        
+        <select id="设备类型" class="filter-item">
+            <option value="">全部设备类型</option>
+            <option value="堆垛机">堆垛机</option>
+            <option value="穿梭车">穿梭车</option>
+            <option value="提升机">提升机</option>
+        </select>
+
+        <select id="货位类型" class="filter-item">
+            <option value="">全部货位类型</option>
+            <option value="单货位单伸">单货位单伸</option>
+            <option value="单货位双伸">单货位双伸</option>
+            <option value="单货位">单货位</option>
+            <option value="双货位">双货位</option>
+        </select>
+
+        <select id="驱动类型" class="filter-item">
+            <option value="">全部驱动类型</option>
+            <option value="西门子-G120">西门子-G120</option>
+            <option value="西门子-S120">西门子-S120</option>
+            <option value="丹佛斯-FC302">丹佛斯-FC302</option>
+            <option value="丹佛斯-FC360">丹佛斯-FC360</option>
+        </select>
+
+        <select id="测距方式" class="filter-item">
+            <option value="">全部测距方式</option>
+            <option value="激光测距">激光测距</option>
+            <option value="条码阅读器">条码阅读器</option>
+        </select>
+
+        <select id="测距型号" class="filter-item">
+            <option value="">全部测距型号</option>
+            <option value="劳易测-AMS">劳易测-AMS</option>
+            <option value="劳易测-BPS">劳易测-BPS</option>
+        </select>
+
+        <select id="通讯方式" class="filter-item">
+            <option value="">全部通讯方式</option>
+            <option value="激光通讯">激光通讯</option>
+            <option value="载波通讯">载波通讯</option>
+            <option value="拖链网线">拖链网线</option>
+        </select>
+
+        <select id="通讯型号" class="filter-item">
+            <option value="">全部通讯型号</option>
+            <option value="捷益利-ZB-G04/05">捷益利-ZB-G04/05</option>
+            <option value="西克-ISD400">西克-ISD400</option>
+        </select>
+
+            <div class="action-buttons">
+                <button onclick="handleExport()">导出数据</button>
+                <button onclick="handleImport()">导入数据</button>
+                <input type="file" id="fileInput" accept=".json" style="display:none">
+            </div>
+        </div>
+
+    <table id="drawingTable">
+        <thead>
+            <tr>
+                <th>图纸名称</th>
+                <th>设备类型</th>
+                <th>货位类型</th>
+                <th>驱动类型</th>
+                <th>测距方式</th>
+                <th>测距型号</th>
+                <th>通讯方式</th>
+                <th>通讯型号</th>
+                <th>文档链接</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+        </tbody>
+    </table>
+
+    <div id="loginModal" onclick="handleModalClick(event)">
+            <div class="modal-content" id="modalContent">
+                <div class="modal-header">
+                    <h3>管理员验证</h3>
+                    <p>请输入管理员凭证继续操作</p>
+                </div>
+                <div class="input-group">
+                    <input type="text" 
+                           id="username" 
+                           class="login-input" 
+                           placeholder="用户名"
+                           autocomplete="off">
+                </div>
+                <div class="input-group">
+                    <input type="password" 
+                           id="password" 
+                           class="login-input" 
+                           placeholder="密码"
+                           autocomplete="off"
+                           onkeypress="handleEnterKey(event)">
+                </div>
+                <div class="error-message" id="errorMessage"></div>
+                <div class="login-buttons">
+                    <button class="login-button primary" onclick="login()">立即登录</button>
+                    <button class="login-button secondary" onclick="hideLoginModal()">取消</button>
+                </div>
+            </div>
+        </div>
+
+    <script>
+        //管理员凭证配置
+        const ADMIN_CREDENTIALS = {
+            username: 'admin',
+            password: 'admin123'
+        };
+
+        // 登录状态管理
+        let currentAction = null;
+        let loginAttempts = 0;
+        const MAX_ATTEMPTS = 3;
+
+        // 显示登录弹窗（带动画）
+        function showLoginModal(action) {
+            currentAction = action;
+            const modal = document.getElementById('loginModal');
+            const content = document.getElementById('modalContent');
+            
+            modal.style.display = 'flex';
+            setTimeout(() => content.classList.add('show'), 10);
+            
+            // 自动聚焦用户名输入框
+            setTimeout(() => document.getElementById('username').focus(), 100);
+        }
+
+        // 隐藏登录弹窗（带动画）
+        function hideLoginModal() {
+            const content = document.getElementById('modalContent');
+            content.classList.remove('show');
+            
+            setTimeout(() => {
+                document.getElementById('loginModal').style.display = 'none';
+                clearLoginForm();
+            }, 300);
+        }
+
+        // 清空登录表单
+        function clearLoginForm() {
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('errorMessage').textContent = '';
+        }
+
+        // 处理弹窗外部点击
+        function handleModalClick(event) {
+            if (event.target === document.getElementById('loginModal')) {
+                hideLoginModal();
+            }
+        }
+
+        // 处理回车键登录
+        function handleEnterKey(event) {
+            if (event.key === 'Enter') {
+                login();
+            }
+        }
+
+        // 增强版登录验证
+        function login() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const errorElem = document.getElementById('errorMessage');
+
+            // 输入验证
+            if (!username || !password) {
+                errorElem.textContent = '用户名和密码不能为空';
+                return;
+            }
+
+            // 尝试次数限制
+            if (loginAttempts >= MAX_ATTEMPTS) {
+                errorElem.textContent = '错误次数过多，请稍后再试';
+                return;
+            }
+
+            // 凭证验证
+            if (username === ADMIN_CREDENTIALS.username && 
+                password === ADMIN_CREDENTIALS.password) {
+                handleSuccessLogin();
+            } else {
+                handleFailedLogin();
+            }
+        }
+
+        function handleSuccessLogin() {
+            hideLoginModal();
+            loginAttempts = 0;
+            
+            // 执行对应操作
+            switch(currentAction) {
+                case 'export':
+                    exportData();
+                    break;
+                case 'import':
+                    document.getElementById('fileInput').click();
+                    break;
+            }
+        }
+
+        function handleFailedLogin() {
+            loginAttempts++;
+            const remaining = MAX_ATTEMPTS - loginAttempts;
+            
+            document.getElementById('password').value = '';
+            document.getElementById('errorMessage').textContent = 
+                `登录失败，剩余尝试次数：${remaining > 0 ? remaining : 0}`;
+            
+            if (loginAttempts >= MAX_ATTEMPTS) {
+                setTimeout(hideLoginModal, 1500);
+            }
+        }
+
+        // 修改后的操作处理函数
+        function handleExport() {
+            showLoginModal('export');
+        }
+
+        function handleImport() {
+            showLoginModal('import');
+        }
+        // 初始化本地存储数据
+        let drawingData = JSON.parse(localStorage.getItem('drawingData')) || [
+            {
+                "图纸名称": "SRM001-V1.0",
+                "设备类型": "堆垛机",
+                "货位类型": "单货位单伸",
+                "驱动类型": "西门子-G120",
+                "测距方式": "激光测距",
+                "测距型号": "劳易测-AMS",
+                "通讯方式": "激光通讯",
+                "通讯型号": "西克-ISD400",
+                "link": "https://aims.feishu.cn/file/BXwRbUynwoxBKExMoJCcEpBRnmf"
+            }
+        ];
+
+        // 渲染表格
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = data.map(item => `
+                <tr>
+                    <td>${item.图纸名称}</td>
+                    <td>${item.设备类型}</td>
+                    <td>${item.货位类型}</td>
+                    <td>${item.驱动类型}</td>
+                    <td>${item.测距方式}</td>
+                    <td>${item.测距型号}</td>
+                    <td>${item.通讯方式}</td>
+                    <td>${item.通讯型号}</td>
+                    <td><a href="${item.link}" target="_blank" class="doc-link">下载图纸</a></td>
+                </tr>
+            `).join('');
+        }
+
+        // 增强版筛选功能
+        function filterData() {
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const filters = {
+                设备类型: document.getElementById('设备类型').value,
+                货位类型: document.getElementById('货位类型').value,
+                驱动类型: document.getElementById('驱动类型').value,
+                测距方式: document.getElementById('测距方式').value,
+                测距型号: document.getElementById('测距型号').value,
+                通讯方式: document.getElementById('通讯方式').value,
+                通讯型号: document.getElementById('通讯型号').value
+            };
+
+            return drawingData.filter(item => {
+                // 关键词搜索（支持多个字段）
+                const keywordMatch = Object.values(item).some(value => 
+                    String(value).toLowerCase().includes(searchText)
+                );
+                
+                // 筛选条件匹配
+                const filterMatch = Object.entries(filters).every(([key, value]) => 
+                    !value || item[key] === value
+                );
+
+                return keywordMatch && filterMatch;
+            });
+        }
+
+        // 数据导入增强（含错误处理）
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function() {
+                try {
+                    const newData = JSON.parse(this.result);
+                    if (!Array.isArray(newData)) throw new Error('数据格式错误');
+                    
+                    drawingData = newData;
+                    localStorage.setItem('drawingData', JSON.stringify(drawingData));
+                    updateFilter();
+                } catch (error) {
+                    alert(`导入失败: ${error.message}`);
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        // 优化导出功能
+        function exportData() {
+            try {
+                const dataStr = JSON.stringify(drawingData, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `设备图纸_${new Date().toISOString().slice(0,10)}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                alert(`导出失败: ${error.message}`);
+            }
+        }
+
+        // 自动更新筛选
+        function updateFilter() {
+            const filteredData = filterData();
+            renderTable(filteredData);
+        }
+
+        // 事件监听（自动响应所有筛选条件变化）
+        document.querySelectorAll('.filter-item').forEach(element => {
+            element.addEventListener('input', updateFilter);
+            element.addEventListener('change', updateFilter);
+        });
+
+        // 初始渲染
+        updateFilter();
+    </script>
+</body>
+</html>
